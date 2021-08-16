@@ -53,6 +53,30 @@
       <canvas id="myChart"></canvas>
     </div>
 
+    <script>
+      const request = window.indexedDB.open("budgetTracker", 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+
+        const transactionStore = db.createObjectStore("budgetTracker", {
+          keyPath: "listID",
+        });
+        transactionStore.createIndex("transactionList", "transaction");
+      };
+
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(["budgetTracker"], "readwrite");
+        const transactionStore = transaction.objectStore("budgetTracker");
+        const statusIndex = transactionStore.index("transactionList");
+
+        const getRequestIdx = statusIndex.getAll("complete");
+        getRequestIdx.onsuccess = () => {
+          console.log(getRequestIdx.result);
+        };
+      };
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script src="index.js"></script>
   </body>
