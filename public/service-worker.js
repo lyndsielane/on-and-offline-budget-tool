@@ -8,7 +8,7 @@ const FILES_TO_CACHE = [
   "/index.js",
   "/indexedDb.js",
   "/manifest.webmanifest",
-  "/service-worker.js"
+  "/service-worker.js",
 ];
 
 const STATIC_CACHE = "static-cache-v1";
@@ -53,7 +53,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (event.request.url.includes("/api/images")) {
+  if (event.request.url.includes("/api")) {
     event.respondWith(
       caches.open(RUNTIME_CACHE).then((cache) => {
         return fetch(event.request)
