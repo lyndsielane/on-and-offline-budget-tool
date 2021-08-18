@@ -1,30 +1,30 @@
 const FILES_TO_CACHE = [
   "/",
-  "/styles.css",
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
-  "/index.html",
   "/db.js",
+  "/index.html",
   "/index.js",
-  "/indexedDb.js",
-  "/manifest.webmanifest",
+  "manifest.webmanifest",
   "/service-worker.js",
+  "/styles.css",
 ];
 
-const STATIC_CACHE = "static-cache-v1";
-const RUNTIME_CACHE = "runtime-cache";
+const PRECACHE = "precache-v1";
+const RUNTIME = "runtime";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
-      .open(STATIC_CACHE)
+      .open(PRECACHE)
       .then((cache) => cache.addAll(FILES_TO_CACHE))
-      .then(() => self.skipWaiting())
+      .then(self.skipWaiting())
   );
 });
 
+// The activate handler takes care of cleaning up old caches.
 self.addEventListener("activate", (event) => {
-  const currentCaches = [STATIC_CACHE, RUNTIME_CACHE];
+  const currentCaches = [PRECACHE, RUNTIME];
   event.waitUntil(
     caches
       .keys()
@@ -45,41 +45,21 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (
-    event.request.method !== "GET" ||
-    !event.request.url.startsWith(self.location.origin)
-  ) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-
-  if (event.request.url.includes("/api")) {
+  if (event.request.url.startsWith(self.location.origin)) {
     event.respondWith(
-      caches.open(RUNTIME_CACHE).then((cache) => {
-        return fetch(event.request)
-          .then((response) => {
-            cache.put(event.request, response.clone());
-            return response;
-          })
-          .catch(() => caches.match(event.request));
-      })
-    );
-    return;
-  }
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return caches.open(RUNTIME_CACHE).then((cache) => {
-        return fetch(event.request).then((response) => {
-          return cache.put(event.request, response.clone()).then(() => {
-            return response;
+        return caches.open(RUNTIME).then((cache) => {
+          return fetch(event.request).then((response) => {
+            return cache.put(event.request, response.clone()).then(() => {
+              return response;
+            });
           });
         });
-      });
-    })
-  );
+      })
+    );
+  }
 });
