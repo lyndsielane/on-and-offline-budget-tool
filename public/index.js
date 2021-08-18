@@ -20,7 +20,7 @@ function populateTotal() {
     return total + parseInt(t.value);
   }, 0);
 
-  let totalEl = document.querySelector("#total");
+  let totalEl = document.querySelector(".total");
   totalEl.textContent = total;
 }
 
