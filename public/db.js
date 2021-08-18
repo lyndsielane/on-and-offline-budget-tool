@@ -77,7 +77,7 @@ request.onsuccess = function (e) {
   }
 };
 
-const saveRecord = (record) => {
+const saveRecord = (transaction) => {
   console.log("Save record invoked");
   // Create a transaction on the BudgetStore db with readwrite access
   const transaction = db.transaction(["BudgetStore"], "readwrite");
@@ -86,7 +86,7 @@ const saveRecord = (record) => {
   const store = transaction.objectStore("BudgetStore");
 
   // Add record to your store with add method.
-  store.add(record);
+  store.add(transaction);
 };
 
 // Listen for app coming back online
